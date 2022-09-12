@@ -1,71 +1,28 @@
 package academy.mindswap.schoolpark.schoolpark.service;
 
-import academy.mindswap.schoolpark.schoolpark.command.*;
-import academy.mindswap.schoolpark.schoolpark.model.Teacher;
-import academy.mindswap.schoolpark.schoolpark.model.Vehicle;
-import academy.mindswap.schoolpark.schoolpark.repository.TeacherRepository;
-import org.springframework.stereotype.Service;
+import academy.mindswap.schoolpark.schoolpark.command.CreateTeacherDTO;
+import academy.mindswap.schoolpark.schoolpark.command.CreateVehicleDTO;
+import academy.mindswap.schoolpark.schoolpark.command.TeacherDTO;
+import academy.mindswap.schoolpark.schoolpark.command.VehicleDTO;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-@Service
-public class TeacherService {
-    private final TeacherRepository teacherRepository;
-    private final VehicleService vehicleService;
+public interface TeacherService {
+    List<TeacherDTO> getAllTeachers();
 
-    public TeacherService(TeacherRepository teacherRepository, VehicleService vehicleService) {
-        this.teacherRepository = teacherRepository;
-        this.vehicleService = vehicleService;
-    }
+    TeacherDTO createTeacher(CreateTeacherDTO createTeacherDTO);
 
-    public List<TeacherDTO> getAllTeachers() {
-        List<TeacherDTO> listAllTeachers = new ArrayList<>();
-        teacherRepository.findAll().forEach(teacher -> listAllTeachers.add(TeacherConverter.convertToDTO(teacher)));
-        return listAllTeachers;
-    }
+    String createVehicle(Integer teacherID, CreateVehicleDTO createVehicleDTO);
 
-    public TeacherDTO createTeacher(CreateTeacherDTO createTeacherDTO) {
-        return TeacherConverter.convertToDTO(teacherRepository.save(TeacherConverter.convertCreateTeacherDTOtoEntity(createTeacherDTO)));
-    }
+    TeacherDTO findTeacherByID(Integer teacherID);
 
-    public String createVehicle(Integer teacherID, CreateVehicleDTO createVehicleDTO) {
-        Optional<Teacher> teacher = teacherRepository.findById(teacherID);
-        if(teacher.isPresent()){
-            return vehicleService.createVehicle(teacher.get(),
-                    VehicleConverter.vehicleToCreateVehicleDTO(createVehicleDTO));
-        }
-        return "That Teacher ID doesn't exist!";
-    }
+    List<VehicleDTO> getAllVehicles();
 
-    public TeacherDTO findTeacherByID(Integer teacherID) {
-        return teacherRepository.findById(teacherID).isEmpty() ? null :
-                TeacherConverter.convertToDTO(teacherRepository.findById(teacherID).get());
-    }
+    TeacherDTO getOwnerByID(Integer vehicleID);
 
-    public List<VehicleDTO> getAllVehicles() {
-        return vehicleService.getAllCars();
-    }
+    String deleteTeacherByID(Integer teacherID);
 
-    public TeacherDTO getOwnerByID(Integer vehicleID) {
-        return TeacherConverter.convertToDTO(vehicleService.getOwnerByVehicleID(vehicleID));
-    }
+    String deleteCarByID(Integer vehicleID);
 
-    public String deleteTeacherByID(Integer teacherID) {
-        if (teacherRepository.findById(teacherID).isEmpty()){
-            return "Teacher ID not found!";
-        }
-        vehicleService.deleteAllCarsByTeacherID(teacherID);
-        teacherRepository.deleteById(teacherID);
-        return "Deleted with success!";
-    }
-
-    public String deleteCarByID(Integer vehicleID) {
-        return vehicleService.deleteCarByID(vehicleID);
-    }
-
-    public List<VehicleDTO> getAllVehiclesByTeacherID(Integer teacherID) {
-        return vehicleService.getAllCarsByTeacherID(teacherID);
-    }
+    List<VehicleDTO> getAllVehiclesByTeacherID(Integer teacherID);
 }

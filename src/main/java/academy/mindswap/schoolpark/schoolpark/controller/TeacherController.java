@@ -1,8 +1,8 @@
 package academy.mindswap.schoolpark.schoolpark.controller;
 
+
 import academy.mindswap.schoolpark.schoolpark.command.*;
 import academy.mindswap.schoolpark.schoolpark.service.TeacherService;
-import academy.mindswap.schoolpark.schoolpark.service.TeacherServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -43,10 +43,8 @@ public class TeacherController {
     }
 
     @GetMapping("/vehicles/{vehicleID}")
-    public ResponseEntity<TeacherDTO> getOwnerByVehicleID(@PathVariable Integer vehicleID){
-        return teacherService.getOwnerByID(vehicleID) == null ?
-                new ResponseEntity<>(HttpStatus.BAD_REQUEST):
-                new ResponseEntity<>(teacherService.getOwnerByID(vehicleID) ,HttpStatus.ACCEPTED);
+    public ResponseEntity<?> getOwnerByVehicleID(@PathVariable Integer vehicleID){
+        return new ResponseEntity<>(teacherService.getOwnerByID(vehicleID) ,HttpStatus.ACCEPTED);
     }
 
     @DeleteMapping("/vehicles/{vehicleID}")

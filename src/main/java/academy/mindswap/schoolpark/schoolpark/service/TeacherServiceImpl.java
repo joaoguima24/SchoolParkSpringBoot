@@ -1,6 +1,8 @@
 package academy.mindswap.schoolpark.schoolpark.service;
 
+import academy.mindswap.schoolpark.schoolpark.aop.LoggerExecutionTime;
 import academy.mindswap.schoolpark.schoolpark.command.*;
+import academy.mindswap.schoolpark.schoolpark.exception.NotFoundException;
 import academy.mindswap.schoolpark.schoolpark.model.Teacher;
 import academy.mindswap.schoolpark.schoolpark.repository.TeacherRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    @LoggerExecutionTime
     public List<TeacherDTO> getAllTeachers() {
         List<TeacherDTO> listAllTeachers = new ArrayList<>();
         teacherRepository.findAll().forEach(teacher -> listAllTeachers.add(TeacherConverter.convertToDTO(teacher)));
@@ -33,18 +36,16 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public String createVehicle(Integer teacherID, CreateVehicleDTO createVehicleDTO) {
-        Optional<Teacher> teacher = teacherRepository.findById(teacherID);
-        if(teacher.isPresent()){
-            return vehicleService.createVehicle(teacher.get(),
-                    VehicleConverter.vehicleToCreateVehicleDTO(createVehicleDTO));
-        }
-        return "That Teacher ID doesn't exist!";
+        Teacher teacher = teacherRepository.findById(teacherID)
+                .orElseThrow(() -> new NotFoundException ("This Teacher ID does not exist"));
+        return vehicleService.createVehicle(teacher,
+                VehicleConverter.vehicleToCreateVehicleDTO(createVehicleDTO));
     }
 
     @Override
     public TeacherDTO findTeacherByID(Integer teacherID) {
-        return teacherRepository.findById(teacherID).isEmpty() ? null :
-                TeacherConverter.convertToDTO(teacherRepository.findById(teacherID).get());
+        return TeacherConverter.convertToDTO(teacherRepository
+                .findById(teacherID).orElseThrow(()-> new NotFoundException("This Teacher ID does not exist")));
     }
 
     @Override
@@ -59,9 +60,7 @@ public class TeacherServiceImpl implements TeacherService {
 
     @Override
     public String deleteTeacherByID(Integer teacherID) {
-        if (teacherRepository.findById(teacherID).isEmpty()){
-            return "Teacher ID not found!";
-        }
+        teacherRepository.findById(teacherID).orElseThrow(()->new NotFoundException("Teacher ID does not exists"));
         vehicleService.deleteAllCarsByTeacherID(teacherID);
         teacherRepository.deleteById(teacherID);
         return "Deleted with success!";

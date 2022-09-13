@@ -6,6 +6,7 @@ import academy.mindswap.schoolpark.schoolpark.model.Teacher;
 import academy.mindswap.schoolpark.schoolpark.model.Vehicle;
 import academy.mindswap.schoolpark.schoolpark.repository.VehicleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.NotAcceptableStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,11 +35,8 @@ public class VehicleServiceImpl implements VehicleService {
 
     @Override
     public Teacher getOwnerByVehicleID(Integer vehicleID) {
-        if ((vehicleRepository.findById(vehicleID).isEmpty())
-                || vehicleRepository.findById(vehicleID).get().getOwner() == null){
-            return null;
-        }
-        return vehicleRepository.findById(vehicleID).get().getOwner();
+        return vehicleRepository.findById(vehicleID).orElseThrow(()->new NotAcceptableStatusException("Vehicle not found"))
+                .getOwner();
     }
 
     @Override

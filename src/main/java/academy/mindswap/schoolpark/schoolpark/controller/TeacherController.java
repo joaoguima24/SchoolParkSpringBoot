@@ -25,6 +25,7 @@ public class TeacherController {
         return new ResponseEntity<>(teacherService.getAllTeachers(),HttpStatus.ACCEPTED);
     }
 
+
     @PostMapping
     public ResponseEntity<?> createTeacher(@Valid @RequestBody CreateTeacherDTO createTeacherDTO , BindingResult bindingResult){
         if (bindingResult.hasErrors()){

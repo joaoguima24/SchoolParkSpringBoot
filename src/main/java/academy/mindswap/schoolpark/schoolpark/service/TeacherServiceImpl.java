@@ -5,20 +5,23 @@ import academy.mindswap.schoolpark.schoolpark.command.*;
 import academy.mindswap.schoolpark.schoolpark.exception.NotFoundException;
 import academy.mindswap.schoolpark.schoolpark.model.Teacher;
 import academy.mindswap.schoolpark.schoolpark.repository.TeacherRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TeacherServiceImpl implements TeacherService {
     private final TeacherRepository teacherRepository;
     private final VehicleService vehicleService;
+    private final PasswordEncoder passwordEncoder;
 
-    public TeacherServiceImpl(TeacherRepository teacherRepository, VehicleService vehicleService) {
+
+    public TeacherServiceImpl(TeacherRepository teacherRepository, VehicleService vehicleService, PasswordEncoder passwordEncoder) {
         this.teacherRepository = teacherRepository;
         this.vehicleService = vehicleService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -29,8 +32,13 @@ public class TeacherServiceImpl implements TeacherService {
         return listAllTeachers;
     }
 
+    public List<Teacher> getAllTeachersForLogin(){
+        return teacherRepository.findAll();
+    }
+
     @Override
     public TeacherDTO createTeacher(CreateTeacherDTO createTeacherDTO) {
+        createTeacherDTO.setPassword(passwordEncoder.encode(createTeacherDTO.getPassword()));
         return TeacherConverter.convertToDTO(teacherRepository.save(TeacherConverter.convertCreateTeacherDTOtoEntity(createTeacherDTO)));
     }
 

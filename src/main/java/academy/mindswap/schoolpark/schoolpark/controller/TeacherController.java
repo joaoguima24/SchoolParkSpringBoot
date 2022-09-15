@@ -2,9 +2,11 @@ package academy.mindswap.schoolpark.schoolpark.controller;
 
 
 import academy.mindswap.schoolpark.schoolpark.command.*;
+import academy.mindswap.schoolpark.schoolpark.permissions.Util;
 import academy.mindswap.schoolpark.schoolpark.service.TeacherService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,7 @@ public class TeacherController {
     }
 
     @GetMapping
+    @PreAuthorize(Util.USER_ROLE)
     public ResponseEntity<List<TeacherDTO>> getAllTeachers () {
         return new ResponseEntity<>(teacherService.getAllTeachers(),HttpStatus.ACCEPTED);
     }
@@ -69,6 +72,11 @@ public class TeacherController {
     @PostMapping("/{teacherID}/vehicle")
     public ResponseEntity<String> createVehicle(@PathVariable Integer teacherID, @RequestBody CreateVehicleDTO createVehicleDTO){
         return new ResponseEntity<>(teacherService.createVehicle(teacherID,createVehicleDTO),HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{teacherID}/{roleID}")
+    public ResponseEntity<String> addTeacherRole (@PathVariable Integer teacherID , @PathVariable Integer roleID){
+        return teacherService.addTeacherRole(teacherID,roleID);
     }
 
     @GetMapping("/{teacherID}/vehicles")

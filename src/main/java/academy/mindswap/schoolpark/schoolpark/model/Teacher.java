@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 
+
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -27,6 +29,9 @@ public class Teacher {
 
     @ManyToMany (mappedBy = "teachers")
     private List<Event> events;
+
+    @ManyToMany (mappedBy = "teachers" , fetch = FetchType.EAGER)
+    private List<Role> roles;
 
     public Teacher (){
 

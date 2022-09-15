@@ -3,8 +3,12 @@ package academy.mindswap.schoolpark.schoolpark.service;
 import academy.mindswap.schoolpark.schoolpark.aop.LoggerExecutionTime;
 import academy.mindswap.schoolpark.schoolpark.command.*;
 import academy.mindswap.schoolpark.schoolpark.exception.NotFoundException;
+import academy.mindswap.schoolpark.schoolpark.model.Role;
 import academy.mindswap.schoolpark.schoolpark.model.Teacher;
+import academy.mindswap.schoolpark.schoolpark.repository.RoleRepository;
 import academy.mindswap.schoolpark.schoolpark.repository.TeacherRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +20,14 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherRepository teacherRepository;
     private final VehicleService vehicleService;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
 
-    public TeacherServiceImpl(TeacherRepository teacherRepository, VehicleService vehicleService, PasswordEncoder passwordEncoder) {
+    public TeacherServiceImpl(TeacherRepository teacherRepository, VehicleService vehicleService, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.teacherRepository = teacherRepository;
         this.vehicleService = vehicleService;
         this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -82,5 +88,13 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     public List<VehicleDTO> getAllVehiclesByTeacherID(Integer teacherID) {
         return vehicleService.getAllCarsByTeacherID(teacherID);
+    }
+
+    @Override
+    public ResponseEntity<String> addTeacherRole(Integer teacherID, Integer roleID) {
+        Role role = roleRepository.findById(roleID).orElseThrow(()->new NotFoundException("Role not found."));
+        role.getTeachers().add(teacherRepository.findById(teacherID).orElseThrow(()->new NotFoundException("Teacher ID not found.")));
+        roleRepository.save(role);
+        return new ResponseEntity<>("Role saved with success", HttpStatus.ACCEPTED);
     }
 }

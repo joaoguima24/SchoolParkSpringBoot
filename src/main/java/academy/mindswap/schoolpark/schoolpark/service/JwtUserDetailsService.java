@@ -1,11 +1,15 @@
 package academy.mindswap.schoolpark.schoolpark.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 
 import academy.mindswap.schoolpark.schoolpark.exception.NotFoundException;
+
 import academy.mindswap.schoolpark.schoolpark.model.Teacher;
-import academy.mindswap.schoolpark.schoolpark.security.WebSecurityConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,7 +29,16 @@ public class JwtUserDetailsService implements UserDetailsService {
         Teacher user = teacherService.getAllTeachersForLogin().stream()
                 .filter(teacher-> teacher.getFirstName()
                         .equals(username)).findFirst().orElseThrow(()->new NotFoundException("That " + username + " does not exists"));
+
         return new User(user.getFirstName(), user.getPassword() ,
-                new ArrayList<>());
+                getAuthorities(user));
+    }
+
+    private Set getAuthorities (Teacher user){
+        Set authorities = new HashSet();
+        user.getRoles().forEach(role -> {
+            authorities.add(new SimpleGrantedAuthority("ROLE_"+role.getRoleName()));
+        });
+        return authorities;
     }
 }

@@ -1,6 +1,7 @@
 package academy.mindswap.schoolpark.schoolpark.controller;
 
 
+import io.jsonwebtoken.impl.DefaultClaims;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,6 +19,10 @@ import academy.mindswap.schoolpark.schoolpark.service.JwtUserDetailsService;
 import academy.mindswap.schoolpark.schoolpark.security.JwtTokenUtil;
 import academy.mindswap.schoolpark.schoolpark.model.JwtRequest;
 import academy.mindswap.schoolpark.schoolpark.model.JwtResponse;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -47,6 +52,24 @@ public class JwtAuthenticationController {
         final String token = jwtTokenUtil.generateToken(userDetails);
 
         return ResponseEntity.ok(new JwtResponse(token));
+    }
+
+    @RequestMapping(value = "/refreshtoken", method = RequestMethod.GET)
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) throws Exception {
+        // From the HttpRequest get the claims
+        DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
+
+        Map<String, Object> expectedMap = getMapFromClaims(claims);
+        String token = jwtTokenUtil.doGenerateRefreshToken(expectedMap, expectedMap.get("sub").toString());
+        return ResponseEntity.ok(new JwtResponse(token));
+    }
+
+    public Map<String, Object> getMapFromClaims(DefaultClaims claims) {
+        Map<String, Object> expectedMap = new HashMap<String, Object>();
+        for (Map.Entry<String, Object> entry : claims.entrySet()) {
+            expectedMap.put(entry.getKey(), entry.getValue());
+        }
+        return expectedMap;
     }
 
     private void authenticate(String username, String password) throws Exception {

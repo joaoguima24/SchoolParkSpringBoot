@@ -23,7 +23,7 @@ public class TeacherController {
     }
 
     @GetMapping
-    @PreAuthorize(Util.ONLY_ADMIN_AND_USER_ROLE)
+    @PreAuthorize(Util.VIEWER_ROLE)
     public ResponseEntity<List<TeacherDTO>> getAllTeachers () {
         return new ResponseEntity<>(teacherService.getAllTeachers(),HttpStatus.ACCEPTED);
     }

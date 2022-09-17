@@ -1,11 +1,19 @@
 package academy.mindswap.schoolpark.schoolpark.security;
 
 import java.io.IOException;
+import java.rmi.server.ExportException;
+
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import academy.mindswap.schoolpark.schoolpark.exception.NotFoundException;
+import academy.mindswap.schoolpark.schoolpark.model.JwtResponse;
+import org.aspectj.weaver.ast.Not;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +41,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
+            throws ServletException, IOException ,NotFoundException {
 
         final String requestTokenHeader = request.getHeader("Authorization");
 
@@ -46,9 +54,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtTokenUtil.getUsernameFromToken(jwtToken);
             } catch (IllegalArgumentException e) {
-                System.out.println("Unable to get JWT Token");
-            } catch (ExpiredJwtException e) {
-                System.out.println("JWT Token has expired");
+                logger.warn("Unable to get JWT Token");
+            } catch (ExpiredJwtException ex) {
+                logger.warn("JWT token has expired.");
+                String isRefreshToken = request.getHeader("isRefreshToken");
+                String requestURL = request.getRequestURL().toString();
+                // allow for Refresh Token creation if following conditions are true.
+                if (isRefreshToken != null && isRefreshToken.equals("true") && requestURL.contains("refreshtoken")) {
+                    allowForRefreshToken(ex, request);
+                } else
+                    request.setAttribute("exception", ex);
             }
         } else {
             logger.warn("JWT Token does not begin with Bearer String");
@@ -74,6 +89,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(request, response);
+    }
+
+    private void allowForRefreshToken(ExpiredJwtException ex, HttpServletRequest request) {
+
+        // create a UsernamePasswordAuthenticationToken with null values.
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                null, null, null);
+        // After setting the Authentication in the context, we specify
+        // that the current user is authenticated. So it passes the
+        // Spring Security Configurations successfully.
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+        // Set the claims so that in controller we will be using it to create
+        // new JWT
+        request.setAttribute("claims", ex.getClaims());
+
     }
 
 }
